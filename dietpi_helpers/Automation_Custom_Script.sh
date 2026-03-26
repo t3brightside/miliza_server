@@ -81,7 +81,7 @@ wait_for_apt
 apt-get update
 wait_for_apt
 apt-get install -y \
-    libbluetooth3 libsbc1 \
+    libbluetooth3 libsbc1 libfreeaptx0 libldacbt-enc2 libldacbt-abr2 \
     libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi \
     avahi-daemon alsa-utils bluez bluez-tools rfkill dbus \
     gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
@@ -90,7 +90,8 @@ apt-get install -y \
     gir1.2-gst-plugins-base-1.0 libfdk-aac2 curl ca-certificates nano \
     git build-essential autoconf automake libtool pkg-config \
     libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
-    libfdk-aac-dev libdbus-1-dev libsystemd-dev
+    libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
+    libdbus-1-dev libsystemd-dev
 
 # 4. Compile BlueALSA
 echo "=> Building Custom BlueALSA with AAC..."
@@ -102,7 +103,7 @@ cd "$PROJECT_DIR"
 git clone https://github.com/arkq/bluez-alsa.git .
 mkdir -p m4
 autoreconf --install --force --verbose
-./configure --prefix=/usr --enable-aac --enable-aplay --enable-systemd
+./configure --prefix=/usr --enable-aac --enable-aptx --with-libfreeaptx --enable-ldac --enable-aplay --enable-systemd
 make -j$(nproc)
 make install
 ln -sf /usr/bin/bluealsad /usr/bin/bluealsa
@@ -124,13 +125,18 @@ WantedBy=multi-user.target
 EOF
 
 # 5. Purge Build Tools
+echo "=> Protecting high-res codec runtime libraries..."
+wait_for_apt
+apt-mark manual libfreeaptx0 libldacbt-enc2 libldacbt-abr2
+
 echo "=> Cleaning up build environment..."
 cd /root
 rm -rf "$PROJECT_DIR"
 wait_for_apt
 apt-get purge -y git build-essential autoconf automake libtool pkg-config \
     libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
-    libfdk-aac-dev libdbus-1-dev libsystemd-dev
+    libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
+    libdbus-1-dev libsystemd-dev
 wait_for_apt
 apt-get autoremove -y
 apt-get clean
@@ -255,19 +261,27 @@ caddy fmt --overwrite /etc/caddy/Caddyfile
 # 12. Enable & Start Services
 echo "=> Starting all services..."
 systemctl daemon-reload
-systemctl enable caddy avahi-daemon miliza_app bluetooth bluealsa
+systemctl enable caddy avahi-daemon miliza bluetooth bluealsa
 
-systemctl restart dbus || true
+# CHANGE 1: 'reload' instead of 'restart'. This loads your new configs without breaking the live Bluetooth connection.
+systemctl reload dbus || true
 wait_for_service dbus
+
 systemctl restart bluetooth
 wait_for_service bluetooth
+
 systemctl restart bluealsa
 wait_for_service bluealsa
 
+# CHANGE 2: A tiny inline wait to guarantee the hardware is visible before sending the power command.
+echo -n "   -> Waiting for Bluetooth hardware to attach..."
+while ! bluetoothctl list | grep -q "Controller"; do sleep 0.5; done
+echo " [READY]"
+
 bluetoothctl power off
 
-systemctl restart miliza_app
-wait_for_service miliza_app
+systemctl restart miliza
+wait_for_service miliza
 
 systemctl restart caddy
 wait_for_service caddy
