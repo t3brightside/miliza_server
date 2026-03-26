@@ -73,6 +73,9 @@ Name = $BT_DEVICE_NAME
 Class = 0x200404
 DiscoverableTimeout = 0
 ControllerMode = bredr
+
+[Policy]
+AutoEnable=false
 EOF
 
 # 3. Install Dependencies
@@ -159,17 +162,17 @@ rm -f /var/www/html/index.html /usr/share/caddy/index.html || true
 # 8. Fetch Miliza App
 echo "=> Fetching Miliza Alpha App..."
 mkdir -p /root/.config/miliza/data
-systemctl stop miliza_app 2>/dev/null || true
-curl -kL https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_latest -o /usr/local/bin/miliza_app
-chmod +x /usr/local/bin/miliza_app
+systemctl stop miliza 2>/dev/null || true
+curl -kL https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_latest -o /usr/local/bin/miliza
+chmod +x /usr/local/bin/miliza
 
 # 9. Miliza Smart Update Script (RESTORED ORIGINAL VERSION)
 echo "=> Creating Miliza Update Service..."
 cat << 'EOF' > /usr/local/bin/miliza-update
 #!/bin/bash
 
-CURRENT_BIN="/usr/local/bin/miliza_app"
-TEMP_BIN="/tmp/miliza_app_new"
+CURRENT_BIN="/usr/local/bin/miliza"
+TEMP_BIN="/tmp/miliza_new"
 URL="https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_latest"
 
 echo "=> Checking server for Miliza updates..."
@@ -185,12 +188,12 @@ if [ "$HTTP_STATUS" = "200" ]; then
     if [ -s "$TEMP_BIN" ]; then
         echo "✅ New version downloaded successfully!"
         echo "=> Stopping service..."
-        systemctl stop miliza_app
+        systemctl stop miliza
         echo "=> Applying update..."
         mv "$TEMP_BIN" "$CURRENT_BIN"
         chmod +x "$CURRENT_BIN"
         echo "=> Restarting service..."
-        systemctl start miliza_app
+        systemctl start miliza
         echo "🚀 Update complete. Miliza is running the latest version."
     else
         echo "⚠️ ERROR: Server returned success, but file is empty!"
@@ -209,14 +212,14 @@ chmod +x /usr/local/bin/miliza-update
 # 10. Systemd Service (SMART CPU PINNING)
 CORES=$(nproc)
 if [ "$CORES" -ge 4 ]; then
-    EXEC_CMD="/usr/bin/chrt -f 50 taskset -c 2,3 /usr/local/bin/miliza_app"
+    EXEC_CMD="/usr/bin/chrt -f 50 taskset -c 2,3 /usr/local/bin/miliza"
 elif [ "$CORES" -eq 2 ]; then
-    EXEC_CMD="/usr/bin/chrt -f 50 taskset -c 1 /usr/local/bin/miliza_app"
+    EXEC_CMD="/usr/bin/chrt -f 50 taskset -c 1 /usr/local/bin/miliza"
 else
-    EXEC_CMD="/usr/bin/chrt -f 50 /usr/local/bin/miliza_app"
+    EXEC_CMD="/usr/bin/chrt -f 50 /usr/local/bin/miliza"
 fi
 
-cat << EOF > /etc/systemd/system/miliza_app.service
+cat << EOF > /etc/systemd/system/miliza.service
 [Unit]
 Description=Miliza App
 After=network.target bluetooth.target dbus.service
@@ -272,13 +275,6 @@ wait_for_service bluetooth
 
 systemctl restart bluealsa
 wait_for_service bluealsa
-
-# CHANGE 2: A tiny inline wait to guarantee the hardware is visible before sending the power command.
-echo -n "   -> Waiting for Bluetooth hardware to attach..."
-while ! bluetoothctl list | grep -q "Controller"; do sleep 0.5; done
-echo " [READY]"
-
-bluetoothctl power off
 
 systemctl restart miliza
 wait_for_service miliza
