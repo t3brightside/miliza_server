@@ -173,9 +173,17 @@ cat << 'EOF' > /usr/local/bin/miliza-update
 
 CURRENT_BIN="/usr/local/bin/miliza"
 TEMP_BIN="/tmp/miliza_new"
-URL="https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_latest"
 
-echo "=> Checking server for Miliza updates..."
+# Default to latest, but switch to test if the argument is provided
+SUFFIX="latest"
+if [ "$1" = "test" ]; then
+    SUFFIX="test"
+    echo "=> [Test Mode] Fetching the test branch..."
+fi
+
+URL="https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_${SUFFIX}"
+
+echo "=> Checking server for Miliza updates ($SUFFIX)..."
 
 if [ ! -f "$CURRENT_BIN" ]; then
     echo "   [!] Current binary not found. Forcing fresh download."
@@ -194,13 +202,13 @@ if [ "$HTTP_STATUS" = "200" ]; then
         chmod +x "$CURRENT_BIN"
         echo "=> Restarting service..."
         systemctl start miliza
-        echo "🚀 Update complete. Miliza is running the latest version."
+        echo "🚀 Update complete. Miliza is running the ${SUFFIX} version."
     else
         echo "⚠️ ERROR: Server returned success, but file is empty!"
         rm -f "$TEMP_BIN"
     fi
 elif [ "$HTTP_STATUS" = "304" ]; then
-    echo "👍 You are already running the latest version. No update needed."
+    echo "👍 You are already running the ${SUFFIX} version. No update needed."
     rm -f "$TEMP_BIN"
 else
     echo "❌ Update failed! HTTP status code: $HTTP_STATUS"
