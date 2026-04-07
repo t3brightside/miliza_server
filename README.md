@@ -1,6 +1,9 @@
 # Miliza
 
-**Miliza is a standalone streamer software. It can play Tidal streams and internet radio.**
+**Miliza transforms your Linux system into a bit-perfect music streamer.**
+
+Featuring a sleek web interface built for dedicated listening — not for farming clicks. Offering seamless support for **TIDAL**, **internet radio**, and **multi-device Bluetooth**.
+
 <br>Run it in your media server and access over web interface in local network.
 
 Integrates with the Tidal through EbbLabs/python-tidal API.
@@ -8,62 +11,37 @@ Integrates with the Tidal through EbbLabs/python-tidal API.
 
 Try it out on your Raspberry PI or some other ARM64 or x86_64 Linux machine.
 
-## ⚠️ Disclaimer
-**This project has no relation to the official Tidal music app, nor is it endorsed by Tidal in any way.**
-
-**As-Is Software:** This software is free to use but comes with **no warranty or guarantee** of functionality on your personal system. Use it at your own risk.
-
-For now, this is an Alpha state software. It's not meant to be 100% solid and have all the functionality one can wish for.
-<br>Discussion over functionality, features, and bugs: https://github.com/t3brightside/miliza_server/issues
-
 ## 🔽 Download
 This repository is for documentation and bug tracking only.
 <br>Binary downloads are available on the website: **https://miliza.eu**
 
+## ⚠️ Disclaimer
+The software is distributed as-is, without warranty of any kind. By using this software, you acknowledge that you do so at your own risk, and the author assumes no liability for any damages, legal issues, or other consequences arising from its use.
+
+Commercial use, selling, or redistributing this software in any form is not permitted.
+This software is not officially related to TIDAL music app in any way.
+
+Tidal integration deploys EbbLabs/python-tidal API.
+Stations search is based on radio-browser.info.
+
 ## ✨ Features
-For now there is two compiled versions. One compiled on ARM64 Debian and other on x86_64 Ubuntu.
+For now there is three compiled versions. One compiled on ARM64 Debian one on Alpine and one more on x86_64 Ubuntu.
 
-Being a personal hobby project the releases are fairly irregular and versioned just by the date and time.
-
-* **Standalone Binary:** Compiled into a single executable for easy deployment.
-* **Tidal Integration:** Access your favorite Tidal tracks, playlists, and albums. Hi-res playback.
+* **Web UI:** Accessible via web browser in local network (Chrome only for now).
+* **Tidal Integration:** Access your favorite Tidal tracks, playlists, albums, and discover curated content. Hi-res playback.
 * **Online radio stations** Search stations, and listen to direct stream links. 
 * **Hardware Audio:** Direct ALSA output and Bluetooth routing support.
-* **Web UI:** Accessible via web browser in local network (Chrome only for now).
-
-### Selected features:
-* Hi-Res playback.
-* Tidal search with search history.
-* Show and add media from personal Tidal database, albums, artists, playlists, mixes, etc.
-* Share, tracks, albums, lists, etc. Find content using sharelinks.
-* Basic queue handling.
-* Lyrics.
-* 10-band EQ.
-* Technical file and playback information.
-* Selectable DAC, bluetooth and browser output.
-* Selectable volume control for DAC hardware.
-* Bluetooth control, power, pairing. Multidevice connectivity.
-
-## 📱 Screens
-  <a href="screenshots/now_playing.png"><img src="screenshots/now_playing.png" width="100"></a>
-  <a href="screenshots/queue.png"><img src="screenshots/queue.png" width="100"></a>
-  <a href="screenshots/radio_stations.png"><img src="screenshots/radio_stations.png" width="100"></a>
-  <a href="screenshots/tidal_album.png"><img src="screenshots/tidal_album.png" width="100"></a>
-  <a href="screenshots/tidal_albums.png"><img src="screenshots/tidal_albums.png" width="100"></a>
-  <a href="screenshots/tidal_artist.png"><img src="screenshots/tidal_artist.png" width="100"></a>
-  <a href="screenshots/tidal_mixes.png"><img src="screenshots/tidal_mixes.png" width="100"></a>
-    <a href="screenshots/menu.png"><img src="screenshots/menu.png" width="100"></a>
-  <a href="screenshots/settings.png"><img src="screenshots/settings.png" width="100"></a>
-
+* **Standalone Binary:** Compiled into a single executable for easy deployment.
+* **Raspberry Pi:** Full DietPi install script for Raspberry Pi setup.
 
 ## 🛠️ 1. System Prerequisites
 
 Even though Miliza is packaged as a standalone binary, it relies on system-level C-libraries for audio playback and Bluetooth management. **GStreamer**, **ALSA**, and **BlueZ** must be installed on the host system before running the app.
 
 ## DietPi on Raspberry Pi
-Write your self a DietPi flashed card. Replace **dietpi_helpers/dietpi.txt** in the root of the card and pop it in your Raspberry Pi. Wait for a while and you should be ready to go.
+Write your self a DietPi flashed card. Replace **dietpi_helpers/dietpi.txt** in the root of the card and pop it in your Raspberry Pi. Wait for a while (~20min) and you should be ready to go.
 
-Just visit http://miliza.local in your local network. http://miliza.local/miliza.crt gives you the cert to install to your phone and computer for full https access to go PWA mode.
+Just visit http://miliza.local in your local network. http://miliza.local/miliza.crt gives you the cert to install to your phone and computer for full https access to go PWA mode. In case the domain is not accessible use IP address of the device http://xxx.xxx.xxx.xxx:5000
 
 ## Some guidance for manual install
 
