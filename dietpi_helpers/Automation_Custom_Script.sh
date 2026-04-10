@@ -120,7 +120,7 @@ After=bluetooth.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/bluealsa -p a2dp-sink -p a2dp-source --aac-afterburner
+ExecStart=/usr/bin/bluealsad -p a2dp-sink -p a2dp-source --all-codecs --aac-afterburner
 Restart=always
 
 [Install]
