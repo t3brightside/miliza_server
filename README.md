@@ -2,7 +2,7 @@
 
 **Miliza transforms your Linux system into a bit-perfect music streamer.**
 
-Featuring a sleek web interface built for dedicated listening — not for farming clicks. Offering seamless support for **TIDAL**, **internet radio**, and **multi-device Bluetooth**.
+Featuring a sleek web interface built for dedicated listening. Offering seamless support for **TIDAL**, **internet radio**, and **multi-device Bluetooth**.
 
 <br>Run it in your media server and access over web interface in local network.
 
