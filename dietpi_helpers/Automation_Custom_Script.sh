@@ -249,6 +249,7 @@ cat << EOF > /etc/caddy/Caddyfile
     pki {
         ca local {
             name "${SYSTEM_HOSTNAME} CA"
+            install_trust disable
         }
     }
 }
@@ -265,9 +266,6 @@ https://${SYSTEM_HOSTNAME}.local {
     reverse_proxy 127.0.0.1:5000
 }
 EOF
-
-# Auto-format the Caddyfile to prevent log warnings
-caddy fmt --overwrite /etc/caddy/Caddyfile
 
 # 12. Enable & Start Services
 echo "=> Starting all services..."
