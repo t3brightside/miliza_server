@@ -189,7 +189,7 @@ systemctl stop miliza 2>/dev/null || true
 curl -kL https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_latest -o /usr/local/bin/miliza
 chmod +x /usr/local/bin/miliza
 
-# 9. Miliza Smart Update Script (RESTORED ORIGINAL VERSION)
+# 9. Miliza Smart Update Script
 echo "=> Creating Miliza Update Service..."
 cat << 'EOF' > /usr/local/bin/miliza-update
 #!/bin/bash
@@ -276,10 +276,10 @@ echo "=> Configuring Caddy Reverse Proxy for ${SYSTEM_HOSTNAME}.local..."
 mkdir -p /var/www/html
 cat << EOF > /etc/caddy/Caddyfile
 {
+    skip_install_trust
     pki {
         ca local {
             name "${SYSTEM_HOSTNAME} CA"
-            install_trust disable
         }
     }
 }
@@ -322,11 +322,19 @@ systemctl restart caddy
 wait_for_service caddy
 caddy reload --config /etc/caddy/Caddyfile || true
 
-# 13. Root CA Export (Deterministic Path)
+# 13. Root CA Export (Deterministic Path & Safe Timeout)
 echo "=> Exporting Caddy Root CA..."
 
-# Wait for Caddy API to respond
-while ! curl -s http://localhost:2019/config/ > /dev/null; do sleep 0.5; done
+# Wait for Caddy API to respond (WITH TIMEOUT)
+CADDY_TIMEOUT=30
+while ! curl -s http://localhost:2019/config/ > /dev/null; do
+    sleep 0.5
+    ((CADDY_TIMEOUT--))
+    if [ "$CADDY_TIMEOUT" -le 0 ]; then
+        echo "❌ ERROR: Caddy API failed to respond in time."
+        exit 1 # This will trigger the trap and clean up the lock
+    fi
+done
 
 # Trigger a request to ensure the certificate is minted
 curl -sk "https://${SYSTEM_HOSTNAME}.local" > /dev/null || true
@@ -334,11 +342,11 @@ curl -sk "https://${SYSTEM_HOSTNAME}.local" > /dev/null || true
 # Deterministic path for the caddy user's local root CA
 ROOT_CRT="/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt"
 
-TIMEOUT=30
-while [ $TIMEOUT -gt 0 ]; do
+CRT_TIMEOUT=30
+while [ $CRT_TIMEOUT -gt 0 ]; do
     if [ -f "$ROOT_CRT" ]; then break; fi
     sleep 0.5
-    ((TIMEOUT--))
+    ((CRT_TIMEOUT--))
 done
 
 if [ -f "$ROOT_CRT" ]; then
