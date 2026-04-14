@@ -27,13 +27,16 @@ LOCKFILE="/run/miliza_setup.lock"
 
 # Only run this for interactive terminal sessions
 if [[ $- == *i* ]] && [ -f "$LOCKFILE" ]; then
+    CHECKS=0
     while [ -f "$LOCKFILE" ]; do
         clear
+        ((CHECKS++))
         echo -e "\e[1;33m=================================================================\e[0m"
         echo -e "\e[1;33m ⚠️  MILIZA SETUP IS IN PROGRESS \e[0m"
         echo -e "\e[1;33m Please wait until the installation completes. \e[0m"
         echo -e "\e[1;33m=================================================================\e[0m"
-        echo "[ INFO ] Waiting 5 seconds before checking again... (Press CTRL+C to abort)"
+        echo -e "[ INFO ] Status check \e[1;36m#${CHECKS}\e[0m at \e[1;36m$(date +"%H:%M:%S")\e[0m..."
+        echo -e "[ INFO ] Waiting 5 seconds... (Press CTRL+C to abort)"
 
         # Wait 5 seconds, but allow the user to interrupt with Ctrl+C
         trap 'break' INT
