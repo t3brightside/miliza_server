@@ -7,29 +7,49 @@
 
 set -e
 
-# 🚨 ERROR TRAP: Cleanup lock and notify on crash
-trap 'rm -f /tmp/miliza_busy ; echo -e "\n❌ FATAL ERROR: Script crashed on line $LINENO. Setup aborted." ; exit 1' ERR
-
 # =========================================================
 # ⚙️ CONFIGURATION BLOCK
 # =========================================================
 SYSTEM_HOSTNAME="miliza"
 BT_DEVICE_NAME="Miliza Hi-Fi"
+LOCKFILE="/run/miliza_setup.lock"
 # =========================================================
 
-# Create the LOCK FILE for terminal polling
-touch /tmp/miliza_busy
+# 🚨 ERROR TRAP: Cleanup lock/interceptor and notify on crash
+trap 'rm -f "$LOCKFILE" /etc/profile.d/99-miliza-setup-lock.sh ; echo -e "\n❌ FATAL ERROR: Script crashed on line $LINENO. Setup aborted." ; exit 1' ERR
 
-# Add the Poller to .bashrc (Self-cleaning check)
-if ! grep -q "miliza_busy" ~/.bashrc; then
-    cat << 'EOF' >> ~/.bashrc
-if [ -f /tmp/miliza_busy ]; then
-    echo -e "\e[1;33m=================================================================\e[0m"
-    echo -e "\e[1;33m ⚠️  MILIZA SETUP IS IN PROGRESS (Running in another terminal) \e[0m"
-    echo -e "\e[1;33m=================================================================\e[0m"
+# --- CREATE SYSTEM-WIDE LOGIN INTERCEPTOR ---
+touch "$LOCKFILE"
+
+cat << 'EOF' > /etc/profile.d/99-miliza-setup-lock.sh
+#!/bin/bash
+LOCKFILE="/run/miliza_setup.lock"
+
+# Only run this for interactive terminal sessions
+if [[ $- == *i* ]] && [ -f "$LOCKFILE" ]; then
+    while [ -f "$LOCKFILE" ]; do
+        clear
+        echo -e "\e[1;33m=================================================================\e[0m"
+        echo -e "\e[1;33m ⚠️  MILIZA SETUP IS IN PROGRESS \e[0m"
+        echo -e "\e[1;33m Please wait until the installation completes. \e[0m"
+        echo -e "\e[1;33m=================================================================\e[0m"
+        echo "[ INFO ] Waiting 5 seconds before checking again... (Press CTRL+C to abort)"
+
+        # Wait 5 seconds, but allow the user to interrupt with Ctrl+C
+        trap 'break' INT
+        sleep 5
+        trap - INT
+    done
+
+    echo ""
+    echo -e "\e[1;32m[ OK ] Setup complete! Resuming normal login...\e[0m"
+    sleep 1
 fi
 EOF
-fi
+chmod +x /etc/profile.d/99-miliza-setup-lock.sh
+
+# Notify any currently open terminals
+wall "⚠️ MILIZA SETUP HAS STARTED. Please do not modify system files."
 
 echo "=> Starting Master Setup for $SYSTEM_HOSTNAME..."
 
@@ -241,7 +261,14 @@ User=root
 WantedBy=multi-user.target
 EOF
 
-# 11. Configure Caddy
+# 11. Configure Caddy & Network Buffers
+echo "=> Increasing UDP buffer sizes for HTTP/3..."
+cat << EOF > /etc/sysctl.d/99-caddy-quic.conf
+net.core.rmem_max=2500000
+net.core.wmem_max=2500000
+EOF
+sysctl --system > /dev/null || true
+
 echo "=> Configuring Caddy Reverse Proxy for ${SYSTEM_HOSTNAME}.local..."
 mkdir -p /var/www/html
 cat << EOF > /etc/caddy/Caddyfile
@@ -267,12 +294,15 @@ https://${SYSTEM_HOSTNAME}.local {
 }
 EOF
 
+# Auto-format the Caddyfile to prevent log warnings
+caddy fmt --overwrite /etc/caddy/Caddyfile
+
 # 12. Enable & Start Services
 echo "=> Starting all services..."
 systemctl daemon-reload
 systemctl enable caddy avahi-daemon miliza bluetooth bluealsa
 
-# CHANGE 1: 'reload' instead of 'restart'. This loads your new configs without breaking the live Bluetooth connection.
+# 'reload' instead of 'restart'. This loads new configs without breaking live connections.
 systemctl reload dbus || true
 wait_for_service dbus
 
@@ -289,24 +319,32 @@ systemctl restart caddy
 wait_for_service caddy
 caddy reload --config /etc/caddy/Caddyfile || true
 
-# 13. Root CA Export
+# 13. Root CA Export (Deterministic Path)
+echo "=> Exporting Caddy Root CA..."
+
+# Wait for Caddy API to respond
 while ! curl -s http://localhost:2019/config/ > /dev/null; do sleep 0.5; done
+
+# Trigger a request to ensure the certificate is minted
 curl -sk "https://${SYSTEM_HOSTNAME}.local" > /dev/null || true
 
+# Deterministic path for the caddy user's local root CA
+ROOT_CRT="/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt"
+
 TIMEOUT=30
-ROOT_CRT=""
 while [ $TIMEOUT -gt 0 ]; do
-    ROOT_CRT=$(find /var/lib/caddy /root -type f -name "root.crt" 2>/dev/null | head -n 1)
-    if [ -n "$ROOT_CRT" ]; then break; fi
+    if [ -f "$ROOT_CRT" ]; then break; fi
     sleep 0.5
     ((TIMEOUT--))
 done
 
-if [ -n "$ROOT_CRT" ]; then
+if [ -f "$ROOT_CRT" ]; then
     cp "$ROOT_CRT" "/var/www/html/${SYSTEM_HOSTNAME}.crt"
     chown caddy:caddy "/var/www/html/${SYSTEM_HOSTNAME}.crt"
     chmod 644 "/var/www/html/${SYSTEM_HOSTNAME}.crt"
     echo "✅ Root CA successfully exported."
+else
+    echo "❌ ERROR: Root CA not found at $ROOT_CRT"
 fi
 
 # 14. Verification
@@ -315,8 +353,10 @@ if [ "$HTTP_STATUS" = "200" ]; then
     echo "✅ Success! Certificate downloadable at: http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt"
 fi
 
-# CLEANUP lock file
-rm -f /tmp/miliza_busy
+# --- CLEANUP LOCK & INTERCEPTOR ---
+rm -f "$LOCKFILE"
+rm -f /etc/profile.d/99-miliza-setup-lock.sh
+
 echo "-------------------------------------------------------"
 echo "✅ $SYSTEM_HOSTNAME Master Setup Complete!"
 echo "-------------------------------------------------------"
