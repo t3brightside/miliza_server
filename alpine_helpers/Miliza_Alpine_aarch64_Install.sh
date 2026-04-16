@@ -130,7 +130,7 @@ apk add --no-cache \
 echo "=> Configuring Native BlueALSA with AAC and High-Res Codecs..."
 cat << 'EOF' > /etc/conf.d/bluealsa
 # Custom Miliza High-Res Audio Arguments
-command_args="-p a2dp-sink -p a2dp-source --all-codecs --aac-afterburner"
+BLUEALSA_CONF="-p a2dp-sink -p a2dp-source"
 EOF
 
 # 5. Patch Bluetooth Daemon
