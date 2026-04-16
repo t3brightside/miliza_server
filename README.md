@@ -38,66 +38,26 @@ For now there is three compiled versions. One compiled on ARM64 Debian one on Al
 
 Even though Miliza is packaged as a standalone binary, it relies on system-level C-libraries for audio playback and Bluetooth management. **GStreamer**, **ALSA**, and **BlueZ** must be installed on the host system before running the app.
 
+Packages you need:
+
+```apt-get install -y \
+    libbluetooth3 libsbc1 libfreeaptx0 libldacbt-enc2 libldacbt-abr2 \
+    libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi \
+    avahi-daemon alsa-utils bluez bluez-tools rfkill dbus \
+    gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-alsa \
+    gir1.2-gst-plugins-base-1.0 libfdk-aac2 curl ca-certificates nano \
+    git build-essential autoconf automake libtool pkg-config \
+    libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
+    libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
+    libdbus-1-dev libsystemd-dev
+```
+    
 ## DietPi on Raspberry Pi
-Write your self a DietPi flashed card. Replace **dietpi_helpers/dietpi.txt** in the root of the card and pop it in your Raspberry Pi. Wait for a while (~20min) and you should be ready to go.
+Flash yourself a DietPi SD card. Replace **dietpi_helpers/dietpi.txt** in the root of the card and pop it in your Raspberry Pi. Wait for a while (~20min) and you should be ready to go.
 
 Just visit http://miliza.local in your local network. http://miliza.local/miliza.crt gives you the cert to install to your phone and computer for full https access to go PWA mode. In case the domain is not accessible use IP address of the device http://xxx.xxx.xxx.xxx:5000
-
-## Some guidance for manual install
-
-**The following is not a complete guide but helps you get things running.**
-
-### On Debian/Ubuntu-based system:
-
-```bash
-export PYTHONIOENCODING=utf-8
-
-sudo apt install libgirepository-2.0-0
-sudo apt install alsa-utils bluez bluez-tools
-sudo apt install gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-alsa
-sudo apt install liborc-0.4-0 liborc-0.4-dev libasound2-plugins gstreamer1.0-plugins-bad gstreamer1.0-libav
-
-### Bluetooth Configuration
-To allow Miliza to manage Bluetooth devices, ensure the Bluetooth service is running and your user has the correct permissions:
-
-# Enable and start the Bluetooth service
-sudo systemctl enable --now bluetooth
-
-# Add your user to the bluetooth group
-sudo usermod -aG bluetooth $USER
-
-# Restart the service to apply changes
-sudo systemctl restart bluetooth
-```
-*(Note: You may need to log out and log back in for the group changes to take effect).*
-
-### On Alpine-based system:
-
-```bash
-# Update repositories
-apk update
-
-# Install ALSA and Bluetooth
-apk add alsa-utils alsa-lib bluez bluez-tools dbus
-
-# Install GStreamer and its plugins
-apk add gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav
-
-# Install GObject Introspection (equivalent to libgirepository-2.0-0)
-apk add gobject-introspection
-
-# Add services to start automatically on boot
-rc-update add dbus default
-rc-update add bluetooth default
-rc-update add alsa default
-
-# Start them right now
-rc-service dbus start
-rc-service bluetooth start
-rc-service alsa start
-```
-
-
 
 ## 🚀 2. Running Miliza
 
