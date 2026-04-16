@@ -122,7 +122,7 @@ apk update
 wait_for_apk
 
 apk add --no-cache \
-    glib python3 avahi alsa-utils bluez bluez-alsa bluez-alsa-utils dbus util-linux coreutils \
+    glib python3 avahi alsa-utils bluez bluez-alsa bluez-alsa-utils dbus dbus-libs util-linux coreutils \
     gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav gstreamer-tools \
     curl ca-certificates nano
 
