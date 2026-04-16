@@ -123,7 +123,7 @@ wait_for_apk
 
 apk add --no-cache \
     glib python3 avahi alsa-utils bluez bluez-alsa dbus util-linux coreutils \
-    gst-plugins-base gst-plugins-good gstreamer-tools \
+    gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav gstreamer-tools \
     curl ca-certificates nano
 
 # 4. Configure Native BlueALSA
