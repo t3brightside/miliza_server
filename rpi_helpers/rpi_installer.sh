@@ -125,7 +125,7 @@ apt-get install -y \
     git build-essential autoconf automake libtool pkg-config \
     libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
     libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
-    libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev
+    libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev smbclient
 
 # 4. Compile BlueALSA with ALL Codecs
 echo "=> Building Custom BlueALSA with AAC, LDAC, aptX, Opus, and MP3..."
