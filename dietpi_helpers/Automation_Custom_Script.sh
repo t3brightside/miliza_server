@@ -189,6 +189,27 @@ systemctl stop miliza 2>/dev/null || true
 curl -kL https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_latest -o /usr/local/bin/miliza
 chmod +x /usr/local/bin/miliza
 
+# ---------------------------------------------------------
+# 8.5 USB AUTOMOUNT & CLEANUP RULES
+# ---------------------------------------------------------
+echo "=> Configuring headless USB automounting..."
+
+# 1. The Mount Rule
+# When a USB block device with a filesystem is plugged in, systemd mounts it to /media/USB-<partition>
+cat << 'EOF' > /etc/udev/rules.d/99-usb-automount.rules
+ACTION=="add", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-mount --no-block --collect $devnode /media/USB-%k"
+EOF
+
+# 2. The Cleanup Rule
+# When the USB is unplugged, unmount it cleanly and delete the empty folder from /media/
+cat << 'EOF' > /etc/udev/rules.d/99-usb-cleanup.rules
+ACTION=="remove", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-umount /media/USB-%k", RUN+="/bin/rmdir /media/USB-%k"
+EOF
+
+# Reload udev so the rules take effect immediately
+udevadm control --reload-rules
+udevadm trigger
+
 # 9. Miliza Smart Update Script
 echo "=> Creating Miliza Update Service..."
 cat << 'EOF' > /usr/local/bin/miliza-update
