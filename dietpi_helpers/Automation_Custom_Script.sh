@@ -117,7 +117,7 @@ apt-get install -y \
     git build-essential autoconf automake libtool pkg-config \
     libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
     libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
-    libdbus-1-dev libsystemd-dev smbclient
+    libdbus-1-dev libsystemd-dev smbclient cifs-utils udisks2 id3v2
 
 # 4. Compile BlueALSA
 echo "=> Building Custom BlueALSA with AAC..."
