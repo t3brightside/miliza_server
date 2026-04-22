@@ -206,6 +206,27 @@ wait_for_apt
 apt-get install -y caddy
 rm -f /var/www/html/index.html /usr/share/caddy/index.html || true
 
+# ---------------------------------------------------------
+# 8.5 USB AUTOMOUNT & CLEANUP RULES
+# ---------------------------------------------------------
+echo "=> Configuring headless USB automounting..."
+
+# 1. The Mount Rule
+# When a USB block device with a filesystem is plugged in, systemd mounts it to /media/USB-<partition>
+cat << 'EOF' > /etc/udev/rules.d/99-usb-automount.rules
+ACTION=="add", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-mount --no-block --collect $devnode /media/USB-%k"
+EOF
+
+# 2. The Cleanup Rule
+# When the USB is unplugged, unmount it cleanly and delete the empty folder from /media/
+cat << 'EOF' > /etc/udev/rules.d/99-usb-cleanup.rules
+ACTION=="remove", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-umount /media/USB-%k", RUN+="/bin/rmdir /media/USB-%k"
+EOF
+
+# Reload udev so the rules take effect immediately
+udevadm control --reload-rules
+udevadm trigger
+
 # 9. Fetch Miliza App
 echo "=> Fetching Miliza Alpha App..."
 mkdir -p /root/.config/miliza/data
