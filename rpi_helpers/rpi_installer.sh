@@ -115,6 +115,7 @@ apt-get purge -y bluez-alsa-utils || true
 
 # Install runtime and development libraries for EVERY codec
 apt-get install -y \
+    rclone fuse3 \
     libbluetooth3 libsbc1 libfreeaptx0 libldacbt-enc2 libldacbt-abr2 libfdk-aac2 \
     libmp3lame0 libmpg123-0 libopus0 \
     libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi \
@@ -126,6 +127,9 @@ apt-get install -y \
     libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
     libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
     libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev smbclient cifs-utils udisks2 id3v2
+
+echo "=> Configuring FUSE permissions for Cloud Storage..."
+sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
 
 # 4. Compile BlueALSA with ALL Codecs
 echo "=> Building Custom BlueALSA with AAC, LDAC, aptX, Opus, and MP3..."
