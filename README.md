@@ -1,18 +1,16 @@
 # Miliza
 
-**Miliza transforms your Linux system into a bit-perfect music streamer.**
+**Miliza is a Linux based music streaming server.**
 
-Featuring a sleek web interface built for dedicated listening. Offering seamless support for **TIDAL**, **internet radio**, and **multi-device Bluetooth**.
-
-<br>Run it in your media server and access over web interface in local network.
+<br>Run it as a media server and access over web interface in local network.
 
 Integrates with the Tidal through EbbLabs/python-tidal API.
 <br>Finding internet radios throguh radio-browser.info and plays from direct links.
 
-Try it out on your Raspberry PI or some other ARM64 or x86_64 Linux machine.
+Try it out on your Raspberry PI or some other ARM64 / x86_64 Linux machine running Debian based OS.
 
 ## 🔽 Download
-This repository is for documentation and bug tracking only.
+This repository is for installation scripts, documentation and bug tracking only.
 <br>Binary downloads are available on the website: **https://miliza.eu**
 
 ## ⚠️ Disclaimer
@@ -60,11 +58,9 @@ apt-get install -y \
 
 ## 🚀 2. Running Miliza
 
-Since Miliza is compiled into a single executable, you don't need to install Python or set up virtual environments on the target machine.
-
-There are 2 binaries available for now.
-* **x86_64** compiled on Ubuntu
-* **aarch64** compiled on Debian.
+There are 2 binaries available for now. Both for Debian based systems.
+* **x86_64**
+* **aarch64**
 
 1. **Run the server:**
    ```bash
@@ -79,7 +75,7 @@ There are 2 binaries available for now.
 
 ## 🔈 Usage
 
-Go to Settings. Auth for Tidal. Set the output hardware and try it out.
+Go to Settings. Auth for Tidal or add some network drives. Set the output hardware and try it out.
 
 
 ## 📝 License
