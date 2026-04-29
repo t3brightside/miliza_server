@@ -190,7 +190,7 @@ rm -f /var/www/html/index.html /usr/share/caddy/index.html || true
 echo "=> Fetching Miliza Alpha App..."
 mkdir -p /root/.config/miliza/data
 systemctl stop miliza 2>/dev/null || true
-curl -kL https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_latest -o /usr/local/bin/miliza
+curl -kL https://miliza.eu/latest/miliza_alpha_debian_aarch64_latest -o /usr/local/bin/miliza
 chmod +x /usr/local/bin/miliza
 
 # ---------------------------------------------------------
@@ -229,7 +229,7 @@ if [ "$1" = "test" ]; then
     echo "=> [Test Mode] Fetching the test branch..."
 fi
 
-URL="https://miliza.eu/fileadmin/user_upload/latest/miliza_alpha_debian_aarch64_${SUFFIX}"
+URL="https://miliza.eu/latest/miliza_alpha_debian_aarch64_${SUFFIX}"
 
 echo "=> Checking server for Miliza updates ($SUFFIX)..."
 
