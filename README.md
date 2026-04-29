@@ -28,8 +28,10 @@ Stations search is based on radio-browser.info.
 For now there is three compiled versions. One compiled on ARM64 Debian one on Alpine and one more on x86_64 Ubuntu.
 
 * **Web UI:** Accessible via web browser in local network (Chrome only for now).
+* **Play files from:** Removable media, NAD, and cloud like Dropbox, Google, OneDrive
 * **Tidal Integration:** Access your favorite Tidal tracks, playlists, albums, and discover curated content. Hi-res playback.
-* **Online radio stations** Search stations, and listen to direct stream links. 
+* **Online radio stations:** Search stations, and listen to direct stream links.
+* **Bluetooth:** multi-device connectivity
 * **Hardware Audio:** Direct ALSA output and Bluetooth routing support.
 * **Standalone Binary:** Compiled into a single executable for easy deployment.
 * **Raspberry Pi:** Full DietPi install script for Raspberry Pi setup.
@@ -55,11 +57,6 @@ apt-get install -y \
     libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
     libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev smbclient cifs-utils udisks2 id3v2
 ```
-    
-## DietPi on Raspberry Pi
-Flash yourself a DietPi SD card. Replace **dietpi_helpers/dietpi.txt** in the root of the card and pop it in your Raspberry Pi. Wait for a while (~20min) and you should be ready to go.
-
-Just visit http://miliza.local in your local network. http://miliza.local/miliza.crt gives you the cert to install to your phone and computer for full https access to go PWA mode. In case the domain is not accessible use IP address of the device http://xxx.xxx.xxx.xxx:5000
 
 ## 🚀 2. Running Miliza
 
