@@ -40,18 +40,20 @@ Even though Miliza is packaged as a standalone binary, it relies on system-level
 
 Packages you need:
 
-```apt-get install -y \
-    libbluetooth3 libsbc1 libfreeaptx0 libldacbt-enc2 libldacbt-abr2 \
+```
+apt-get install -y \
+    rclone fuse3 \
+    libbluetooth3 libsbc1 libfreeaptx0 libldacbt-enc2 libldacbt-abr2 libfdk-aac2 \
+    libmp3lame0 libmpg123-0 libopus0 \
     libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi \
     avahi-daemon alsa-utils bluez bluez-tools rfkill dbus \
     gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
     gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-alsa \
-    gir1.2-gst-plugins-base-1.0 libfdk-aac2 curl ca-certificates nano \
+    gir1.2-gst-plugins-base-1.0 curl ca-certificates nano \
     git build-essential autoconf automake libtool pkg-config \
     libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
     libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
-    libdbus-1-dev libsystemd-dev
+    libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev smbclient cifs-utils udisks2 id3v2
 ```
     
 ## DietPi on Raspberry Pi
