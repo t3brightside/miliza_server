@@ -31,6 +31,7 @@ For now there is three compiled versions. One compiled on ARM64 Debian one on Al
 * **Online radio stations:** Search stations, and listen to direct stream links.
 * **Bluetooth:** multi-device connectivity
 * **Hardware Audio:** Direct ALSA output and Bluetooth routing support.
+* **DSP:** 64-bit dynamic loudness control, 10-band EQ
 * **Standalone Binary:** Compiled into a single executable for easy deployment.
 * **Raspberry Pi:** Full DietPi install script for Raspberry Pi setup.
 
