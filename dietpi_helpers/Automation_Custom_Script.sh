@@ -32,8 +32,8 @@ if [[ $- == *i* ]] && [ -f "$LOCKFILE" ]; then
         clear
         ((CHECKS++))
         echo -e "\e[1;33m=================================================================\e[0m"
-        echo -e "\e[1;33m ⚠️  MILIZA SETUP IS IN PROGRESS \e[0m"
-        echo -e "\e[1;33m Please wait until the installation completes. \e[0m"
+        echo -e "\e[1;33m  ⚠️  MILIZA SETUP IS IN PROGRESS  \e[0m"
+        echo -e "\e[1;33m  Please wait until the installation completes.  \e[0m"
         echo -e "\e[1;33m=================================================================\e[0m"
         echo -e "[ INFO ] Status check \e[1;36m#${CHECKS}\e[0m at \e[1;36m$(date +"%H:%M:%S")\e[0m..."
         echo -e "[ INFO ] Waiting 5 seconds... (Press CTRL+C to abort)"
@@ -138,6 +138,11 @@ make -j$(nproc)
 make install
 ln -sf /usr/bin/bluealsad /usr/bin/bluealsa
 
+# 🟢 THE FIX 1: Create the persistent state directory so BlueALSA remembers AAC capabilities
+echo "=> Creating persistent BlueALSA state directory..."
+mkdir -p /usr/var/lib/bluealsa
+chmod 755 /usr/var/lib/bluealsa
+
 echo "=> Enforcing BlueALSA AAC SystemD Service..."
 cat << 'EOF' > /etc/systemd/system/bluealsa.service
 [Unit]
@@ -147,6 +152,8 @@ After=bluetooth.service
 
 [Service]
 Type=simple
+# 🟢 THE FIX 2: Wait 2 seconds to ensure the Bluetooth antenna is fully awake before claiming codecs
+ExecStartPre=/bin/sleep 2
 ExecStart=/usr/bin/bluealsad -p a2dp-sink -p a2dp-source --all-codecs --aac-afterburner
 Restart=always
 
@@ -199,13 +206,11 @@ chmod +x /usr/local/bin/miliza
 echo "=> Configuring headless USB automounting..."
 
 # 1. The Mount Rule
-# When a USB block device with a filesystem is plugged in, systemd mounts it to /media/USB-<partition>
 cat << 'EOF' > /etc/udev/rules.d/99-usb-automount.rules
 ACTION=="add", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-mount --no-block --collect $devnode /media/USB-%k"
 EOF
 
 # 2. The Cleanup Rule
-# When the USB is unplugged, unmount it cleanly and delete the empty folder from /media/
 cat << 'EOF' > /etc/udev/rules.d/99-usb-cleanup.rules
 ACTION=="remove", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-umount /media/USB-%k", RUN+="/bin/rmdir /media/USB-%k"
 EOF
