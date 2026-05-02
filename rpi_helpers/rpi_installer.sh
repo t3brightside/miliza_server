@@ -32,8 +32,8 @@ if [[ $- == *i* ]] && [ -f "$LOCKFILE" ]; then
         clear
         ((CHECKS++))
         echo -e "\e[1;33m=================================================================\e[0m"
-        echo -e "\e[1;33m ⚠️  MILIZA SETUP IS IN PROGRESS \e[0m"
-        echo -e "\e[1;33m Please wait until the installation completes. \e[0m"
+        echo -e "\e[1;33m  ⚠️  MILIZA SETUP IS IN PROGRESS  \e[0m"
+        echo -e "\e[1;33m  Please wait until the installation completes.  \e[0m"
         echo -e "\e[1;33m=================================================================\e[0m"
         echo -e "[ INFO ] Status check \e[1;36m#${CHECKS}\e[0m at \e[1;36m$(date +"%H:%M:%S")\e[0m..."
         echo -e "[ INFO ] Waiting 5 seconds... (Press CTRL+C to abort)"
@@ -161,6 +161,11 @@ make install
 # Fix the binary name mismatch
 ln -sf /usr/bin/bluealsad /usr/bin/bluealsa
 
+# 🟢 THE FIX: Create the persistent state directory so BlueALSA can remember AAC capabilities
+echo "=> Creating persistent BlueALSA state directory..."
+mkdir -p /usr/var/lib/bluealsa
+chmod 755 /usr/var/lib/bluealsa
+
 # 5. Enforce BlueALSA SystemD Service
 echo "=> Configuring Compiled BlueALSA SystemD Service..."
 cat << 'EOF' > /etc/systemd/system/bluealsa.service
@@ -171,6 +176,8 @@ After=bluetooth.service
 
 [Service]
 Type=simple
+# 🟢 THE FIX: Wait 2 seconds to ensure the Bluetooth antenna is fully awake before claiming codecs
+ExecStartPre=/bin/sleep 2
 # Safe launch parameters: enables Sink/Source and forces AAC afterburner for Mac quality
 ExecStart=/usr/bin/bluealsa -p a2dp-sink -p a2dp-source --aac-afterburner
 Restart=always
