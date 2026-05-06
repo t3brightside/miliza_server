@@ -120,7 +120,7 @@ apt-get install -y \
     libmp3lame0 libmpg123-0 libopus0 \
     libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi \
     avahi-daemon alsa-utils bluez bluez-tools rfkill dbus \
-    gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
     gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-alsa \
     gir1.2-gst-plugins-base-1.0 curl ca-certificates nano \
     git build-essential autoconf automake libtool pkg-config \
