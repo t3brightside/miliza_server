@@ -58,6 +58,7 @@ apt-get install -y \
 ```
 
 ## 🚀 2. Running Miliza
+Easiest way to go is the Raspberry Pi Miliza image. Available at: **https://miliza.eu**
 
 There are 2 binaries available for now. Both for Debian based systems.
 * **x86_64**
