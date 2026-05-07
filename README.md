@@ -1,6 +1,6 @@
 # Miliza
 
-**Miliza is a Linux based music streaming server.**
+**Miliza is a Linux based music streaming software.**
 
 <br>Run it as a media server and access over web interface in local network.
 
