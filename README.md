@@ -23,17 +23,17 @@ Tidal integration deploys EbbLabs/python-tidal API.
 Stations search is based on radio-browser.info.
 
 ## ✨ Features
-For now there is three compiled versions. One compiled on ARM64 Debian one on Alpine and one more on x86_64 Ubuntu.
+For now there is two compiled versions. One compiled on ARM64 Debian and one for x86_64 Ubuntu/Debian.
 
-* **Web UI:** Accessible via web browser in local network (Chrome only for now).
+* **Web UI:** Accessible via web browser in local network. Installs as a WebApp.
 * **Play files from:** Removable media, NAD, and cloud like Dropbox, Google, OneDrive
 * **Tidal Integration:** Access your favorite Tidal tracks, playlists, albums, and discover curated content. Hi-res playback.
 * **Online radio stations:** Search stations, and listen to direct stream links.
 * **Bluetooth:** multi-device connectivity
 * **Hardware Audio:** Direct ALSA output and Bluetooth routing support.
-* **DSP:** 64-bit dynamic loudness control, 10-band EQ
+* **DSP:** 64-bit dynamic loudness control, Auto EQ, 10-band EQ
 * **Standalone Binary:** Compiled into a single executable for easy deployment.
-* **Raspberry Pi:** Full DietPi install script for Raspberry Pi setup.
+* **Raspberry Pi:** Install image setup with access point for headless WiFi configuration.
 
 ## 🛠️ 1. System Prerequisites
 
