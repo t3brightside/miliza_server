@@ -2,7 +2,7 @@
 * **Storage:** Approximately **6GB** of disk space. (A Debian-based OS brings lot of overhead, but this only impacts disk usage).
 * **Memory:** Approximately **500MB RAM** usage for the entire system.
 
-### Universal installer script
+## Universal installer script
 
 Besides a fully functional Miliza instance, this setup configures Bluetooth with high-quality AAC codecs.
 
