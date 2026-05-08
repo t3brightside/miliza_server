@@ -3,9 +3,11 @@
 Run it as a media server and access over web interface in local network.<br />
 
 Runs on Raspberry PI or some other ARM64 / x86_64 Linux machine running Debian based OS.
+
+Info, screenshots, and downloads: **https://miliza.eu**
 <br /><br />
 ## Download
-Binary files and install image for Raspberry Pi are available on: **https://miliza.eu**<br />
+Binary files and install image for Raspberry Pi are available on the main website.<br />
 This repository is for installation scripts, documentation, and bug tracking only.
 
 [Install Instructions](https://github.com/t3brightside/miliza_server/blob/main/INSTALL.md)
