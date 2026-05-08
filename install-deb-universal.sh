@@ -1,9 +1,9 @@
 #!/bin/bash
-# =========================================================
+# ========================================================
 # Miliza OS Setup (Universal x86_64 / aarch64)
-# Fully headless, AAC and Bluetooth setup
-# Run this script as root in a minimal Debian based distro
-# =========================================================
+# Fully headless, optional AAC and Bluetooth setup
+# Run this script as root in a Debian based distro
+# ========================================================
 
 set -e
 
@@ -17,6 +17,12 @@ BT_DEVICE_NAME="Miliza Hi-Fi"
 # 🚨 ERROR TRAP: Notify on crash
 trap 'echo -e "\n❌ FATAL ERROR: Script crashed on line $LINENO. Setup aborted." ; exit 1' ERR
 
+# Ensure the script is run with root privileges
+if [ "$EUID" -ne 0 ]; then
+  echo "❌ Error: Please run this script as root or using sudo."
+  exit 1
+fi
+
 # =========================================================
 # 🏗️ ARCHITECTURE DETECTION
 # =========================================================
@@ -25,7 +31,6 @@ ARCH=$(uname -m)
 
 if [ "$ARCH" = "x86_64" ]; then
     echo "   -> x86_64 architecture detected."
-    # Change 'amd64' below if your x86 file uses a different naming convention
     MILIZA_BIN_URL="https://miliza.eu/latest/miliza_debian_amd64_stable"
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
     echo "   -> ARM64 architecture detected."
@@ -34,6 +39,20 @@ else
     echo "❌ ERROR: Unsupported architecture ($ARCH). This script requires x86_64 or aarch64."
     exit 1
 fi
+
+# =========================================================
+# 🎧 INTERACTIVE PROMPT
+# =========================================================
+echo ""
+read -p "=> Do you want to install Bluetooth audio features? (y/n): " INSTALL_BT_PROMPT
+if [[ "${INSTALL_BT_PROMPT,,}" == "y" || "${INSTALL_BT_PROMPT,,}" == "yes" ]]; then
+    INSTALL_BT=true
+    echo "   -> Bluetooth features WILL be installed."
+else
+    INSTALL_BT=false
+    echo "   -> Bluetooth features WILL BE SKIPPED."
+fi
+echo ""
 
 # --- CLEANUP EXISTING SERVICES FOR RE-RUNS ---
 echo "=> Preparing environment..."
@@ -82,10 +101,11 @@ update-locale LANG=en_GB.UTF-8 LC_ALL=en_GB.UTF-8
 export LANG=en_GB.UTF-8
 export LC_ALL=en_GB.UTF-8
 
-# 2. Pre-configure Bluetooth
-echo "=> Pre-configuring Bluetooth..."
-mkdir -p /etc/bluetooth
-cat << EOF > /etc/bluetooth/main.conf
+# 2. Pre-configure Bluetooth (Conditional)
+if [ "$INSTALL_BT" = true ]; then
+    echo "=> Pre-configuring Bluetooth..."
+    mkdir -p /etc/bluetooth
+    cat << EOF > /etc/bluetooth/main.conf
 [General]
 Name = $BT_DEVICE_NAME
 Class = 0x200404
@@ -95,70 +115,70 @@ ControllerMode = bredr
 [Policy]
 AutoEnable=false
 EOF
+else
+    echo "=> Skipping Bluetooth pre-configuration..."
+fi
 
-# 3. Clean up Debian's crippled BlueALSA and Install Build Tools & Codecs
-echo "=> Purging Debian BlueALSA and Installing Build Dependencies..."
+# 3. Purge Debian BlueALSA and Install Dependencies
+echo "=> Installing System Dependencies..."
 wait_for_apt
 apt-get update
-wait_for_apt
-apt-get purge -y bluez-alsa-utils || true
 
-# Install runtime and development libraries for EVERY codec
-apt-get install -y \
-    rclone fuse3 \
-    libbluetooth3 libsbc1 libfreeaptx0 libldacbt-enc2 libldacbt-abr2 libfdk-aac2 \
-    libmp3lame0 libmpg123-0 libopus0 \
-    libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi \
-    avahi-daemon alsa-utils bluez bluez-tools rfkill dbus \
-    gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-    gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-alsa \
-    gir1.2-gst-plugins-base-1.0 curl ca-certificates nano \
-    git build-essential autoconf automake libtool pkg-config \
-    libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
-    libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
-    libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev smbclient cifs-utils udisks2 id3v2
+# Base packages required regardless of Bluetooth
+BASE_PKGS="rclone fuse3 libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi avahi-daemon dbus gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-alsa gir1.2-gst-plugins-base-1.0 curl ca-certificates nano smbclient cifs-utils udisks2 id3v2"
+
+wait_for_apt
+apt-get install -y $BASE_PKGS
+
+if [ "$INSTALL_BT" = true ]; then
+    echo "=> Purging Debian BlueALSA and Installing Bluetooth Build Dependencies..."
+    wait_for_apt
+    apt-get purge -y bluez-alsa-utils || true
+    
+    BT_PKGS="libbluetooth3 libsbc1 libfreeaptx0 libldacbt-enc2 libldacbt-abr2 libfdk-aac2 libmp3lame0 libmpg123-0 libopus0 alsa-utils bluez bluez-tools rfkill git build-essential autoconf automake libtool pkg-config libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev"
+    
+    wait_for_apt
+    apt-get install -y $BT_PKGS
+fi
 
 echo "=> Configuring FUSE permissions for Cloud Storage..."
 sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
 
-# 4. Compile BlueALSA with ALL Codecs
-echo "=> Building Custom BlueALSA with AAC, LDAC, aptX, Opus, and MP3..."
-PROJECT_DIR="/tmp/bluealsa-build-temp"
-rm -rf "$PROJECT_DIR"
-mkdir -p "$PROJECT_DIR"
-cd "$PROJECT_DIR"
+# 4 & 5 & 6 & 7. Build BlueALSA, SystemD, Patch & Cleanup (Conditional)
+if [ "$INSTALL_BT" = true ]; then
+    echo "=> Building Custom BlueALSA with AAC, LDAC, aptX, Opus, and MP3..."
+    PROJECT_DIR="/tmp/bluealsa-build-temp"
+    rm -rf "$PROJECT_DIR"
+    mkdir -p "$PROJECT_DIR"
+    cd "$PROJECT_DIR"
 
-git clone https://github.com/arkq/bluez-alsa.git .
-mkdir -p m4
-autoreconf --install --force --verbose
+    git clone https://github.com/arkq/bluez-alsa.git .
+    mkdir -p m4
+    autoreconf --install --force --verbose
 
-# Configure with explicitly enabled flags
-./configure --prefix=/usr \
-    --enable-aac \
-    --enable-aptx --enable-aptx-hd --with-libfreeaptx \
-    --enable-ldac \
-    --enable-mp3lame --enable-mpg123 \
-    --enable-opus \
-    --enable-faststream \
-    --enable-midi \
-    --enable-a2dpconf \
-    --enable-aplay \
-    --enable-systemd
+    ./configure --prefix=/usr \
+        --enable-aac \
+        --enable-aptx --enable-aptx-hd --with-libfreeaptx \
+        --enable-ldac \
+        --enable-mp3lame --enable-mpg123 \
+        --enable-opus \
+        --enable-faststream \
+        --enable-midi \
+        --enable-a2dpconf \
+        --enable-aplay \
+        --enable-systemd
 
-make -j$(nproc)
-make install
+    make -j$(nproc)
+    make install
 
-# Fix the binary name mismatch
-ln -sf /usr/bin/bluealsad /usr/bin/bluealsa
+    ln -sf /usr/bin/bluealsad /usr/bin/bluealsa
 
-# Create the persistent state directory so BlueALSA can remember AAC capabilities
-echo "=> Creating persistent BlueALSA state directory..."
-mkdir -p /usr/var/lib/bluealsa
-chmod 755 /usr/var/lib/bluealsa
+    echo "=> Creating persistent BlueALSA state directory..."
+    mkdir -p /usr/var/lib/bluealsa
+    chmod 755 /usr/var/lib/bluealsa
 
-# 5. Enforce BlueALSA SystemD Service
-echo "=> Configuring Compiled BlueALSA SystemD Service..."
-cat << 'EOF' > /etc/systemd/system/bluealsa.service
+    echo "=> Configuring Compiled BlueALSA SystemD Service..."
+    cat << 'EOF' > /etc/systemd/system/bluealsa.service
 [Unit]
 Description=BluezALSA proxy
 Requires=bluetooth.service
@@ -166,9 +186,7 @@ After=bluetooth.service
 
 [Service]
 Type=simple
-# Wait 2 seconds to ensure the Bluetooth antenna is fully awake before claiming codecs
 ExecStartPre=/bin/sleep 2
-# Safe launch parameters: enables Sink/Source and forces AAC afterburner for Mac quality
 ExecStart=/usr/bin/bluealsa -p a2dp-sink -p a2dp-source --aac-afterburner
 Restart=always
 
@@ -176,30 +194,32 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-# 6. Protect Runtime Libraries & Clean Up Build Tools
-echo "=> Protecting codec runtime libraries and cleaning up..."
-wait_for_apt
-apt-mark manual libfreeaptx0 libldacbt-enc2 libldacbt-abr2 libfdk-aac2 libmp3lame0 libmpg123-0 libopus0
+    echo "=> Protecting codec runtime libraries and cleaning up..."
+    wait_for_apt
+    apt-mark manual libfreeaptx0 libldacbt-enc2 libldacbt-abr2 libfdk-aac2 libmp3lame0 libmpg123-0 libopus0
 
-cd /root
-rm -rf "$PROJECT_DIR"
-wait_for_apt
-apt-get purge -y git build-essential autoconf automake libtool pkg-config \
-    libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
-    libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
-    libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev
-wait_for_apt
-apt-get autoremove -y
-apt-get clean
+    cd /root
+    rm -rf "$PROJECT_DIR"
+    wait_for_apt
+    apt-get purge -y git build-essential autoconf automake libtool pkg-config \
+        libasound2-dev libbluetooth-dev libglib2.0-dev libsbc-dev \
+        libfdk-aac-dev libfreeaptx-dev libldacbt-enc-dev libldacbt-abr-dev \
+        libmp3lame-dev libmpg123-dev libopus-dev libdbus-1-dev
+    wait_for_apt
+    apt-get autoremove -y
+    apt-get clean
 
-# 7. Patch Bluetooth Daemon
-echo "=> Patching Bluetooth Daemon..."
-mkdir -p /etc/systemd/system/bluetooth.service.d
-cat << 'EOF' > /etc/systemd/system/bluetooth.service.d/override.conf
+    echo "=> Patching Bluetooth Daemon..."
+    mkdir -p /etc/systemd/system/bluetooth.service.d
+    cat << 'EOF' > /etc/systemd/system/bluetooth.service.d/override.conf
 [Service]
 ExecStart=
 ExecStart=/usr/libexec/bluetooth/bluetoothd --noplugin=hostname
 EOF
+
+else
+    echo "=> Skipping BlueALSA compilation, setup, and Bluetooth daemon patching..."
+fi
 
 # 8. Install Caddy
 echo "=> Installing Caddy..."
@@ -212,17 +232,14 @@ rm -f /var/www/html/index.html /usr/share/caddy/index.html || true
 # ---------------------------------------------------------
 echo "=> Configuring headless USB automounting..."
 
-# 1. The Mount Rule
 cat << 'EOF' > /etc/udev/rules.d/99-usb-automount.rules
 ACTION=="add", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-mount --no-block --collect $devnode /media/USB-%k"
 EOF
 
-# 2. The Cleanup Rule
 cat << 'EOF' > /etc/udev/rules.d/99-usb-cleanup.rules
 ACTION=="remove", SUBSYSTEMS=="usb", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", RUN+="/usr/bin/systemd-umount /media/USB-%k", RUN+="/bin/rmdir /media/USB-%k"
 EOF
 
-# Reload udev so the rules take effect immediately
 udevadm control --reload-rules
 udevadm trigger
 
@@ -230,11 +247,10 @@ udevadm trigger
 echo "=> Fetching Miliza App (Stable) for $ARCH..."
 mkdir -p /root/.config/miliza/data
 systemctl stop miliza 2>/dev/null || true
-# Dynamically downloads based on the $MILIZA_BIN_URL set in the architecture detection block
 curl -kL "$MILIZA_BIN_URL" -o /usr/local/bin/miliza
 chmod +x /usr/local/bin/miliza
 
-# 10. Systemd Service (SMART CPU PINNING)
+# 10. Systemd Service (SMART CPU PINNING & CONDITIONAL BT TARGET)
 echo "=> Creating Miliza SystemD Service..."
 CORES=$(nproc)
 if [ "$CORES" -ge 4 ]; then
@@ -245,10 +261,13 @@ else
     EXEC_CMD="/usr/bin/chrt -f 50 /usr/local/bin/miliza"
 fi
 
+BT_TARGET=""
+[ "$INSTALL_BT" = true ] && BT_TARGET="bluetooth.target"
+
 cat << EOF > /etc/systemd/system/miliza.service
 [Unit]
 Description=Miliza App
-After=network.target bluetooth.target dbus.service
+After=network.target dbus.service $BT_TARGET
 
 [Service]
 ExecStart=$EXEC_CMD
@@ -297,16 +316,22 @@ caddy fmt --overwrite /etc/caddy/Caddyfile
 # 12. Enable & Start Services
 echo "=> Starting all services..."
 systemctl daemon-reload
-systemctl enable caddy avahi-daemon miliza bluetooth bluealsa
+systemctl enable caddy avahi-daemon miliza
+
+if [ "$INSTALL_BT" = true ]; then
+    systemctl enable bluetooth bluealsa
+fi
 
 systemctl reload dbus || true
 wait_for_service dbus
 
-systemctl restart bluetooth
-wait_for_service bluetooth
+if [ "$INSTALL_BT" = true ]; then
+    systemctl restart bluetooth
+    wait_for_service bluetooth
 
-systemctl restart bluealsa
-wait_for_service bluealsa
+    systemctl restart bluealsa
+    wait_for_service bluealsa
+fi
 
 systemctl restart miliza
 wait_for_service miliza
@@ -355,5 +380,5 @@ if [ "$HTTP_STATUS" = "200" ]; then
 fi
 
 echo "-------------------------------------------------------"
-echo "✅ $SYSTEM_HOSTNAME Master Setup Complete!"
+echo "✅ $SYSTEM_HOSTNAME Setup Complete!"
 echo "-------------------------------------------------------"
