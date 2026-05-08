@@ -4,6 +4,8 @@ Run it as a media server and access over web interface in local network.<br />
 
 Runs on Raspberry PI or some other ARM64 / x86_64 Linux machine running Debian based OS.
 
+This repository is for installation scripts, documentation, and bug tracking only.
+
 Info, screenshots, and downloads: **https://miliza.eu**
 <br /><br />
 ## Download
