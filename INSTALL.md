@@ -14,7 +14,7 @@ There is an image file available at **https://miliza.eu**
 <br /><br />
 ## Universal installer script
 
-Besides a fully functional Miliza instance, this setup configures Bluetooth with high-quality AAC codecs.
+Besides a fully functional Miliza instance, this setup configures Bluetooth (optional) with high-quality AAC codecs.
 
 1.  **OS Install:** Install aarch64 or x86_64 Debian based Linux with minimal package.
 2.  **Script:** Download the [install-deb-universal.sh](https://raw.githubusercontent.com/t3brightside/miliza_server/refs/heads/main/install-deb-universal.sh) script.
