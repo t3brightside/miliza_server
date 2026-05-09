@@ -388,7 +388,7 @@ if [ -f "$ROOT_CRT" ]; then
     cp "$ROOT_CRT" "/var/www/html/${SYSTEM_HOSTNAME}.crt"
     chown caddy:caddy "/var/www/html/${SYSTEM_HOSTNAME}.crt"
     chmod 644 "/var/www/html/${SYSTEM_HOSTNAME}.crt"
-    echo "✅ Root CA successfully exported."
+    echo "Root CA successfully exported."
 else
     echo "❌ ERROR: Root CA not found at $ROOT_CRT"
 fi
@@ -404,12 +404,12 @@ echo "-------------------------------------------------------"
 echo "✅ Setup Complete!"
 echo "-------------------------------------------------------"
 HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" "http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt")
-if [ "$HTTP_STATUS" = "200" ]; then
-    echo "✅ Certificate ready at: http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt"
-fi
-echo "🌐 You can now access your Miliza system at:"
+echo "🌐 You can now access Miliza at:"
 echo "   -> http://${SYSTEM_HOSTNAME}.local"
 if [ "$LOCAL_IP" != "UNAVAILABLE" ]; then
 echo "   -> http://${LOCAL_IP}"
+fi
+if [ "$HTTP_STATUS" = "200" ]; then
+    echo "   -> http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt"
 fi
 echo "-------------------------------------------------------"
