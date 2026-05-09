@@ -12,7 +12,7 @@ There is an image file available at **https://miliza.eu**
 
 1. **Flash the image** using Raspberry Pi Imager software and boot your Pi.
 2. **If using Wi-Fi** connect to "Miliza Setup" and configure network.
-3. **SSH** access `miliza / miliza123`, better change that pass!
+3. **SSH** access `miliza / miliza123` Better change that pass!
 <br /><br />
 ## Universal install script
 
