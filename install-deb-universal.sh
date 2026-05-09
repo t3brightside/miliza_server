@@ -31,7 +31,7 @@ ARCH=$(uname -m)
 
 if [ "$ARCH" = "x86_64" ]; then
     echo "   -> x86_64 architecture detected."
-    MILIZA_BIN_URL="https://miliza.eu/latest/miliza_debian_amd64_stable"
+    MILIZA_BIN_URL="https://miliza.eu/latest/miliza_debian_x86_64_stable"
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
     echo "   -> ARM64 architecture detected."
     MILIZA_BIN_URL="https://miliza.eu/latest/miliza_debian_aarch64_stable"
