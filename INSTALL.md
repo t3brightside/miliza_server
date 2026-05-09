@@ -12,7 +12,7 @@ There is an image file available at **https://miliza.eu**
 1. **Flash the image** using Raspberry Pi Imager software and boot your Pi.
 2. **If using Wi-Fi** connect to "Miliza Setup" and configure network.
 <br /><br />
-## Universal installer script
+## Universal install script
 
 Besides a fully functional Miliza instance, this setup configures Bluetooth (optional) with high-quality AAC codecs.
 
