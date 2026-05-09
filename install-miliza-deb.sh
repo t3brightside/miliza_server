@@ -1,6 +1,6 @@
 #!/bin/bash
 # ========================================================
-# Miliza OS Setup (Universal x86_64 / aarch64)
+# Miliza OS Setup (Universal x86_64 / aarch64 / x86_32 / aarch_32)
 # Fully headless, optional AAC and Bluetooth setup
 # Run this script as root in a Debian based distro
 # ========================================================
@@ -8,13 +8,8 @@
 set -e
 
 # =========================================================
-# ⚙️ CONFIGURATION BLOCK
+# 🚨 ERROR TRAP
 # =========================================================
-SYSTEM_HOSTNAME="miliza"
-BT_DEVICE_NAME="Miliza Hi-Fi"
-# =========================================================
-
-# 🚨 ERROR TRAP: Notify on crash
 trap 'echo -e "\n❌ FATAL ERROR: Script crashed on line $LINENO. Setup aborted." ; exit 1' ERR
 
 # Ensure the script is run with root privileges
@@ -35,15 +30,40 @@ if [ "$ARCH" = "x86_64" ]; then
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
     echo "   -> ARM64 architecture detected."
     MILIZA_BIN_URL="https://miliza.eu/latest/miliza_debian_aarch64_stable"
+elif [ "$ARCH" = "i386" ] || [ "$ARCH" = "i686" ] || [ "$ARCH" = "x86_32" ]; then
+    echo "   -> x86_32 (32-bit) architecture detected."
+    MILIZA_BIN_URL="https://miliza.eu/latest/miliza_debian_x86_32_stable"
+elif [[ "$ARCH" == armv* ]] || [ "$ARCH" = "aarch32" ]; then
+    echo "   -> aarch_32 (ARM 32-bit) architecture detected."
+    MILIZA_BIN_URL="https://miliza.eu/latest/miliza_debian_aarch_32_stable"
 else
-    echo "❌ ERROR: Unsupported architecture ($ARCH). This script requires x86_64 or aarch64."
+    echo "❌ ERROR: Unsupported architecture ($ARCH)."
     exit 1
 fi
 
 # =========================================================
-# 🎧 INTERACTIVE PROMPT
+# 🎧 INTERACTIVE PROMPTS
 # =========================================================
 echo ""
+# Prompt for Hostname
+read -p "=> Enter machine name (default 'miliza'): " INPUT_HOSTNAME
+INPUT_HOSTNAME=${INPUT_HOSTNAME:-miliza}
+
+# Sanitize input: lowercase, spaces to hyphens, strip invalid chars
+SYSTEM_HOSTNAME=$(echo "$INPUT_HOSTNAME" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g' | sed 's/[^a-z0-9-]//g')
+
+# Fallback just in case sanitization wipes the whole string
+if [ -z "$SYSTEM_HOSTNAME" ]; then
+    SYSTEM_HOSTNAME="miliza"
+fi
+
+# Dynamically set BT name based on the machine name (capitalizes first letter)
+BT_DEVICE_NAME="${SYSTEM_HOSTNAME^} Hi-Fi"
+
+echo "   -> Machine name set to: $SYSTEM_HOSTNAME ($SYSTEM_HOSTNAME.local)"
+echo ""
+
+# Prompt for Bluetooth
 read -p "=> Do you want to install Bluetooth audio features? (y/n): " INSTALL_BT_PROMPT
 if [[ "${INSTALL_BT_PROMPT,,}" == "y" || "${INSTALL_BT_PROMPT,,}" == "yes" ]]; then
     INSTALL_BT=true
@@ -340,7 +360,7 @@ systemctl restart caddy
 wait_for_service caddy
 caddy reload --config /etc/caddy/Caddyfile || true
 
-# 13. Root CA Export (Deterministic Path & Safe Timeout)
+# 13. Root CA Export
 echo "=> Exporting Caddy Root CA..."
 
 CADDY_TIMEOUT=30
@@ -373,12 +393,23 @@ else
     echo "❌ ERROR: Root CA not found at $ROOT_CRT"
 fi
 
-# 14. Verification
-HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" "http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt")
-if [ "$HTTP_STATUS" = "200" ]; then
-    echo "✅ Success! Certificate downloadable at: http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt"
-fi
+# 14. Verification & IP Retrieval
+
+
+# Grab the primary local IP address to show the user
+LOCAL_IP=$(hostname -I | awk '{print $1}')
+LOCAL_IP=${LOCAL_IP:-"UNAVAILABLE"}
 
 echo "-------------------------------------------------------"
-echo "✅ $SYSTEM_HOSTNAME Setup Complete!"
+echo "✅ Setup Complete!"
+echo "-------------------------------------------------------"
+HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" "http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt")
+if [ "$HTTP_STATUS" = "200" ]; then
+    echo "✅ Certificate ready at: http://${SYSTEM_HOSTNAME}.local/${SYSTEM_HOSTNAME}.crt"
+fi
+echo "🌐 You can now access your Miliza system at:"
+echo "   -> http://${SYSTEM_HOSTNAME}.local"
+if [ "$LOCAL_IP" != "UNAVAILABLE" ]; then
+echo "   -> http://${LOCAL_IP}"
+fi
 echo "-------------------------------------------------------"
