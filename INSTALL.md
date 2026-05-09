@@ -4,8 +4,8 @@ There's IMG for Raspberry Pi and universal install script. See which suits you b
 ## System Requirements
 * **Architecture:** aarch64, x86_64, aarch32, x86_32
 * **OS:** Debian-based Linux
-* **Storage:** Approximately **6GB** of disk space. (A Debian-based OS brings lot of overhead, but this only impacts disk usage).
-* **Memory:** Approximately **500MB RAM** usage for the entire system.
+* **Storage:** Possible to fit under **3GB** of disk space. (A Debian-based OS brings lot of overhead, but this only impacts disk usage).
+* **RAM:** should work ok with **512MB**.
 <br /><br />
 ## Raspberry Pi image install
 There is an image file available at **https://miliza.eu**
