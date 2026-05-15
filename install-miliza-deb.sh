@@ -76,7 +76,7 @@ echo ""
 
 # --- CLEANUP EXISTING SERVICES FOR RE-RUNS ---
 echo "=> Preparing environment..."
-systemctl stop caddy miliza bluealsa bluetooth 2>/dev/null || true
+systemctl stop caddy miliza bluealsa bluetooth shairport-sync 2>/dev/null || true
 rm -f /usr/local/bin/miliza-update # Ensure the old bash updater is dead
 
 wall "⚠️ MILIZA SETUP HAS STARTED. Please do not modify system files."
@@ -145,10 +145,20 @@ wait_for_apt
 apt-get update
 
 # Base packages required regardless of Bluetooth
-BASE_PKGS="rclone fuse3 libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi avahi-daemon dbus gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-alsa gir1.2-gst-plugins-base-1.0 curl ca-certificates nano smbclient cifs-utils udisks2 id3v2"
+# 🟢 Added shairport-sync
+BASE_PKGS="rclone fuse3 libgirepository-2.0-0 gir1.2-glib-2.0 python3-gi avahi-daemon dbus gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-alsa gir1.2-gst-plugins-base-1.0 curl ca-certificates nano smbclient cifs-utils udisks2 id3v2 shairport-sync"
 
 wait_for_apt
 apt-get install -y $BASE_PKGS
+
+# =========================================================
+# 3.5. Enable ALSA Loopback (Virtual Audio Cable for AirPlay)
+# =========================================================
+echo "=> Enabling ALSA Loopback kernel module..."
+if ! grep -q "^snd-aloop" /etc/modules; then
+    echo "snd-aloop" >> /etc/modules
+fi
+modprobe snd-aloop || echo "⚠️ Warning: Could not load snd-aloop right now (may require a reboot)."
 
 if [ "$INSTALL_BT" = true ]; then
     echo "=> Purging Debian BlueALSA and Installing Bluetooth Build Dependencies..."
@@ -240,6 +250,26 @@ EOF
 else
     echo "=> Skipping BlueALSA compilation, setup, and Bluetooth daemon patching..."
 fi
+
+# =========================================================
+# 7.5. Configure AirPlay (Shairport-Sync)
+# =========================================================
+echo "=> Configuring Shairport-Sync for AirPlay..."
+cat << EOF > /etc/shairport-sync.conf
+general = {
+    name = "${SYSTEM_HOSTNAME^}"; // Capitalizes first letter to match BT name
+    port = 5005;
+    ignore_volume_control = "yes";
+};
+
+alsa = {
+    output_device = "hw:Loopback,0,0";
+};
+
+sessioncontrol = {
+    active_state_timeout = 1.0;
+};
+EOF
 
 # 8. Install Caddy
 echo "=> Installing Caddy..."
@@ -336,7 +366,8 @@ caddy fmt --overwrite /etc/caddy/Caddyfile
 # 12. Enable & Start Services
 echo "=> Starting all services..."
 systemctl daemon-reload
-systemctl enable caddy avahi-daemon miliza
+# 🟢 Added shairport-sync here
+systemctl enable caddy avahi-daemon miliza shairport-sync
 
 if [ "$INSTALL_BT" = true ]; then
     systemctl enable bluetooth bluealsa
@@ -355,6 +386,10 @@ fi
 
 systemctl restart miliza
 wait_for_service miliza
+
+# 🟢 Added shairport-sync restart/wait here
+systemctl restart shairport-sync
+wait_for_service shairport-sync
 
 systemctl restart caddy
 wait_for_service caddy
