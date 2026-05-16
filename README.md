@@ -25,7 +25,7 @@ For now there is two compiled versions. One compiled on ARM64 Debian and one for
 * **Bluetooth:** multi-device connectivity
 * **AirPlay** well, it's AirPlay :)
 * **Audio Hardware:** Direct ALSA output and Bluetooth routing support with custom volume control.
-* **DSP:** 64-bit dynamic loudness control, Auto EQ, 10-band EQ
+* **DSP:** 64-bit dynamic loudness control, Parametric EQ with curves database access
 * **Install image:** Raspberry Pi image setup with access point for headless WiFi configuration.
 <br /><br />
 ## ⚠️ Disclaimer
