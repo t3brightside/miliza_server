@@ -24,7 +24,7 @@ Besides a fully functional Miliza instance, this setup configures Bluetooth (opt
 <br /><br />
 ## Usage
 
-* **Access:** Visit ***http**://miliza.local* or IP
+* **Access:** Visit ***http**://miliza.local* or if not accessible http://miliza or http://IP
 * **SSL Certificate:** Visit ***http**://miliza.local/miliza.crt* to download the certificate and install on your devices.
 * **Web App:** With the cert in place visit ***https**://miliza.local* so you can install Miliza as a PWA.
 * **Bluetooth:** To pair Bluetooth sources, initiate the search from your device and confirm the pairing within in Miliza.
