@@ -23,6 +23,7 @@ For now there is two compiled versions. One compiled on ARM64 Debian and one for
 * **Online radio stations:** Search stations, and listen to direct stream links.
 * **Podcasts:** Integrated with podcastindex.org database.
 * **Bluetooth:** multi-device connectivity
+* **AirPlay** well, it's AirPlay :)
 * **Audio Hardware:** Direct ALSA output and Bluetooth routing support with custom volume control.
 * **DSP:** 64-bit dynamic loudness control, Auto EQ, 10-band EQ
 * **Install image:** Raspberry Pi image setup with access point for headless WiFi configuration.
