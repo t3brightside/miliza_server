@@ -323,6 +323,8 @@ After=network.target dbus.service $BT_TARGET
 ExecStart=$EXEC_CMD
 Restart=always
 User=root
+Nice=-15
+LimitMEMLOCK=infinity
 
 [Install]
 WantedBy=multi-user.target
